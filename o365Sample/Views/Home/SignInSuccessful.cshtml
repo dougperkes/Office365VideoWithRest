@@ -1,0 +1,48 @@
+﻿@model o365Sample.Models.Office365Context
+
+@{
+    ViewBag.Title = "Authentication Successful";
+}
+
+<h2>Authentication Successful</h2>
+<div>
+    Logged in to Office 365 as @Html.Raw(ViewBag.PersonName) (@Html.Raw(ViewBag.PersonUniqueName))
+</div>
+<div class="row">
+    @Html.ActionLink("Push Video to Office 365", "Index", "VideoPush")
+</div>
+<div class="row">
+    <h4>Your Office 365 Details</h4>
+    <hr />
+    <h3>Token Properties</h3>
+    <dl class="dl-horizontal">
+        <dt>Token Type</dt>
+        <dd>@Model.Tokens[0].token_type</dd>
+        <dt>Token Resource</dt>
+        <dd>@Model.Tokens[0].resource</dd>
+        <dt>Token Scope</dt>
+        <dd>@Model.Tokens[0].scope</dd>
+    </dl>
+    <h3>Claims</h3>
+    <dl class="dl-horizontal">
+        @foreach(var claim in @Model.Tokens[0].securityToken.Claims)
+        {
+            <dt>@Html.Raw(claim.Type)</dt>
+            <dd>@Html.Raw(claim.Value)</dd>
+        }
+    </dl>
+    <h3>Resources</h3>
+        @foreach (var resource in @Model.Resources)
+        {
+            <h4>@resource.capability</h4>
+
+    <dl class="dl-horizontal">
+        <dt>Endpoint</dt>
+        <dd>@resource.serviceEndpointUri</dd>
+        <dt>Service Name</dt>
+        <dd>@resource.serviceName</dd>
+        <dt>Service Resource Id</dt>
+        <dd>@resource.serviceResourceId</dd>
+    </dl>
+        }
+</div>

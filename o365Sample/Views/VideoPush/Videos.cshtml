@@ -1,0 +1,34 @@
+﻿@model IEnumerable<o365Sample.Models.MyVideosViewModel>
+
+@{
+    ViewBag.Title = "UploadVideo";
+}
+
+<h2>UploadVideo</h2>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.FileName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FileSizeMb)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.FileName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.FileSizeMb)
+        </td>
+        <td>
+            @Html.ActionLink("Upload Video", "UploadVideo", new { channelId = ViewBag.ChannelId, fileName = item.FileName }) |
+        </td>
+    </tr>
+}
+
+</table>

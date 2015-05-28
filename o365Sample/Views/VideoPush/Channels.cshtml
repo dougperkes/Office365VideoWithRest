@@ -1,0 +1,46 @@
+﻿@model IEnumerable<o365Sample.Models.Office365VideoChannel>
+
+@{
+    ViewBag.Title = "Channels";
+}
+
+<h2>Video Channels</h2>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Title)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.TitleHtmlColor)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.YammerEnabled)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Title)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Description)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.TitleHtmlColor)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.YammerEnabled)
+        </td>
+        <td>
+            @Html.ActionLink("UploadVideo", "Videos", new { channelId=item.Id }) |
+        </td>
+    </tr>
+}
+
+</table>

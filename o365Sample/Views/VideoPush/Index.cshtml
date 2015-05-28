@@ -1,0 +1,40 @@
+﻿@model o365Sample.Models.Office365VideoServiceDiscoveryResponse
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<div>
+    <h4>Office 365 Video Service Discovery Response</h4>
+    <hr />
+    @if (Model.IsVideoPortalEnabled) { 
+        @Html.ActionLink("View Channel List", "Channels")
+    }
+    else
+    {
+        <div class="alert-warning">
+            Video portal is not enabled. Cannot upload videos.
+        </div>
+    }
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.IsVideoPortalEnabled)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsVideoPortalEnabled)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VideoPortalUrl)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VideoPortalUrl)
+        </dd>
+
+    </dl>
+</div>
+
