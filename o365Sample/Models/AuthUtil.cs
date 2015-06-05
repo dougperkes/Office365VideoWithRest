@@ -12,8 +12,8 @@ namespace o365Sample.Models
 {
     internal class AuthUtil
     {
-        public readonly string AzureAdApplicationClientId = ConfigurationManager.AppSettings["AAD:ClientId"];
-        public readonly string AzureAdApplicationClientSecret = ConfigurationManager.AppSettings["AAD:ClientSecret"];
+        public static readonly string AzureAdApplicationClientId = ConfigurationManager.AppSettings["AAD:ClientId"];
+        public static readonly string AzureAdApplicationClientSecret = ConfigurationManager.AppSettings["AAD:ClientSecret"];
         public const string OauthEndpoint = "https://login.windows.net/common/oauth2/authorize";
         public const string AccessTokenEndpoint = "https://login.windows.net/common/oauth2/token";
         public const string DiscoveryEndpoint = "https://api.office.com/discovery/v1.0/me/services";

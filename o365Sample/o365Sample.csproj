@@ -131,6 +131,7 @@
     <Compile Include="Models\Office365VideoChannel.cs" />
     <Compile Include="Models\Office365VideoServiceDiscoveryResponse.cs" />
     <Compile Include="Models\UploadVideoViewModel.cs" />
+    <Compile Include="Models\VideoFileInformation.cs" />
     <Compile Include="Models\VideoPlaceholderModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -173,6 +174,7 @@
     <Content Include="Views\VideoPush\Channels.cshtml" />
     <Content Include="Views\VideoPush\Videos.cshtml" />
     <Content Include="Views\VideoPush\UploadVideo.cshtml" />
+    <Content Include="Views\VideoPush\UploadSuccessful.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

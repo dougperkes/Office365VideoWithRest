@@ -218,48 +218,152 @@ namespace o365Sample.Controllers
             // Step 2: Create the placeholder
             var channelVideosUrl = string.Format("{0}/_api/VideoService/Channels('{1}')/Videos", 
                 videoDiscoveryInfo.VideoPortalUrl, videoData.ChannelId);
-            //var postData = new VideoPlaceholderModel();
-            //postData.__metadata.FileName = videoData.FileName;
-            //postData.__metadata.Description = videoData.Description;
-            //postData.__metadata.Title = videoData.Title;
-            //postData.__metadata.Type = "SP.Publishing.VideoItem";
+
+            //make a pseudo unique name to avoid file naming conflicts during testing
+            var o365VideoFileName = Math.Abs(Guid.NewGuid().GetHashCode()) + videoData.FileName;
+
             var jsonPostData =
                 string.Format(
                     "{{ '__metadata': {{ 'type': 'SP.Publishing.VideoItem' }}, 'Description': ' {0} ', 'Title': ' {1} ', 'FileName': '{2}' }}",
-                    //"{{'__metadata':{{'type':'SP.Publishing.VideoItem'}},'Description':'{0}', 'Title':'{1}', 'FileName': '{2}'}}",
-                    videoData.Description, videoData.Title, videoData.FileName);
-//            var jsonPostData = JsonConvert.SerializeObject(postData);
-            var placeholderRequestBody = new StringContent(
-                    jsonPostData, Encoding.UTF8, "application/json"
-                );
+                    videoData.Description, videoData.Title, o365VideoFileName);
 
-            using (HttpClient client = new HttpClient(new LoggingHandler(new HttpClientHandler())))
+            var placeholderRequestBody = new StringContent(
+                    jsonPostData
+                );
+            placeholderRequestBody.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;odata=verbose");
+
+            VideoFileInformation o365VideoFileData = null;
+            using (var client = new HttpClient(new LoggingHandler(new HttpClientHandler())))
             {
-    //            MediaTypeFormatter[] formatter = new MediaTypeFormatter[] { new JsonMediaTypeFormatter() };
-    //var content = request.CreateContent<Customer>(obj, MediaTypeHeaderValue.Parse("application
-                client.DefaultRequestHeaders.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/json;odata=verbose"));
+                client.DefaultRequestHeaders.Add("Accept", "application/json;odata=verbose");
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token.access_token);
-                // make sure to add the new header value
                 client.DefaultRequestHeaders.Add("X-RequestDigest", formDigestValue);
-                using (HttpResponseMessage response = await client.PostAsync(channelVideosUrl, placeholderRequestBody))
+                using (var response = await client.PostAsync(channelVideosUrl, placeholderRequestBody))
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        string json = await response.Content.ReadAsStringAsync();
-                        //Debug.WriteLine(json);
+                        var json = await response.Content.ReadAsStringAsync();
+                        o365VideoFileData = JsonConvert.DeserializeObject<VideoFileInformation>(JObject.Parse(json)["d"].ToString());
+
+                        var videoFileInfo = new FileInfo(Path.Combine(Server.MapPath("~/content/samplevideos"), videoData.FileName));
+
+                        // let's make up a size to slice our data on. Technically our slices could be up to 
+                        // 100 MB if we weren't concerned with time outs.
+                        const int chunkSize = 5*1024*1024; // 5 MB
+                        if (videoFileInfo.Length <= chunkSize)
+                        {
+                            var uploadUrl =
+                                string.Format(
+                                    "{0}/_api/VideoService/Channels('{1}')/Videos('{2}')/GetFile()/SaveBinaryStream",
+                                    videoDiscoveryInfo.VideoPortalUrl, videoData.ChannelId, o365VideoFileData.ID
+                                    );
+
+                            using (var fileContent = new StreamContent(videoFileInfo.OpenRead()))
+                            {
+                                using (var uploadResponse = await client.PostAsync(uploadUrl, fileContent))
+                                {
+                                    if (uploadResponse.IsSuccessStatusCode)
+                                    {
+                                        string uploadJsonResponse = await uploadResponse.Content.ReadAsStringAsync();
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            long bytesUploaded = 0;
+                            var uploadSessionId = Guid.NewGuid();
+                            bool canContinue = true;
+                            var startUrl = string.Format(
+                                "{0}/_api/VideoService/Channels('{1}')/Videos('{2}')/GetFile()/StartUpload(uploadId=guid'{3}')",
+                                videoDiscoveryInfo.VideoPortalUrl, videoData.ChannelId, o365VideoFileData.ID, uploadSessionId
+                                );
+                            using (HttpResponseMessage startResponseMessage = await client.PostAsync(startUrl, null))
+                            {
+                                canContinue = startResponseMessage.IsSuccessStatusCode;
+                            }
+
+                            var totalChunks = Math.Ceiling(videoFileInfo.Length/(double) chunkSize);
+
+                            //need to upload all but the last chunk
+                            while (bytesUploaded <  chunkSize * (totalChunks-1))
+                            {
+                                if (!canContinue) { break; }
+
+                                using (
+                                    var fileReader =
+                                        new BinaryReader(System.IO.File.Open(videoFileInfo.FullName, FileMode.Open)))
+                                {
+                                    fileReader.BaseStream.Seek(bytesUploaded, SeekOrigin.Begin);
+                                    
+                                    var fileSlice = fileReader.ReadBytes(Convert.ToInt32(chunkSize));
+                                    string chunkUploadUrl =
+                                        string.Format(
+                                            "{0}/_api/VideoService/Channels('{1}')/Videos('{2}')/GetFile()/ContinueUpload(uploadId=guid'{3}',fileOffset='{4}')",
+                                            videoDiscoveryInfo.VideoPortalUrl, videoData.ChannelId, o365VideoFileData.ID,
+                                            uploadSessionId, bytesUploaded
+                                            );
+                                    using (var fileContent = new StreamContent(new MemoryStream(fileSlice)))
+                                    {
+                                        using (
+                                            HttpResponseMessage uploadResponse =
+                                                await client.PostAsync(chunkUploadUrl, fileContent))
+                                        {
+                                            canContinue = uploadResponse.IsSuccessStatusCode;
+                                            bytesUploaded += chunkSize;
+                                        }
+                                    }
+
+                                }
+
+                            }
+
+                            if (canContinue)
+                            {
+                                // still sucessful, upload the last chunk of data
+                                var bytesToRead = videoFileInfo.Length - bytesUploaded;
+                                using (
+                                    var fileReader =
+                                        new BinaryReader(System.IO.File.Open(videoFileInfo.FullName, FileMode.Open)))
+                                {
+                                    fileReader.BaseStream.Seek(bytesUploaded, SeekOrigin.Begin);
+
+                                    var fileSlice = fileReader.ReadBytes(Convert.ToInt32(bytesToRead));
+                                    string chunkUploadUrl =
+                                        string.Format(
+                                            "{0}/_api/VideoService/Channels('{1}')/Videos('{2}')/GetFile()/FinishUpload(uploadId=guid'{3}',fileOffset='{4}')",
+                                            videoDiscoveryInfo.VideoPortalUrl, videoData.ChannelId, o365VideoFileData.ID,
+                                            uploadSessionId, bytesUploaded
+                                            );
+                                    using (var fileContent = new StreamContent(new MemoryStream(fileSlice)))
+                                    {
+                                        // this last request is the slowest
+                                        // perhaps the Office 365 back-end has to compile all the chunks together
+                                        using (
+                                            HttpResponseMessage uploadResponse =
+                                                await client.PostAsync(chunkUploadUrl, fileContent))
+                                        {
+                                            canContinue = uploadResponse.IsSuccessStatusCode;
+                                            bytesUploaded += bytesToRead;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
 
 
 
-
+            Session["UploadedVideoFileInfo"] = o365VideoFileData;
             return RedirectToAction("UploadSuccessful"); //, new { videoUrl = ???});
         }
 
         public ActionResult UploadSuccessful()
         {
-            return View();
+            VideoFileInformation videoInfo = (VideoFileInformation) Session["UploadedVideoFileInfo"];
+            return View(videoInfo);
         }
     }
 }

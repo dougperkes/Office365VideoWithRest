@@ -1,0 +1,136 @@
+﻿@model o365Sample.Models.VideoFileInformation
+
+@{
+    ViewBag.Title = "Upload Successful";
+}
+
+<h2>Upload Successful</h2>
+
+<div>
+    <p>The video is being processed and will be available for viewing after processing has completed</p>
+    <hr/>
+    <a href="@Model.DisplayFormUrl" class="btn btn-primary" target="blank">View on the Video Portal</a>
+    <h3>Video Properties</h3>
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ID)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.ChannelID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ChannelID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CreateDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CreateDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DisplayFormUrl)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DisplayFormUrl)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.FileName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FileName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OwnerName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OwnerName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ServerRelativeUrl)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ServerRelativeUrl)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ThumbnailUrl)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ThumbnailUrl)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Url)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Url)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VideoDurationIsSeconds)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VideoDurationIsSeconds)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VideoProcessingStatus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VideoProcessingStatus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ViewCount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ViewCount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.YammerObjectUrl)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.YammerObjectUrl)
+        </dd>
+
+    </dl>
+</div>
+
