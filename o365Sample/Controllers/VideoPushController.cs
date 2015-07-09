@@ -191,31 +191,11 @@ namespace o365Sample.Controllers
             var token = o365Context.Tokens.First(t => t.resource.Equals(rootSiteResource.serviceResourceId));
 
             // Uploading videos is the 3 step process
-            // 1. Get the request digest to make a post
-            // 2. Create a placeholder for where you will upload the video
-            // 3. Upload a smaller video in a single post or
-            // 3. Upload a larger video in chunks
+            // 1. Create a placeholder for where you will upload the video
+            // 2. Upload a smaller video in a single post or
+            // 2. Upload a larger video in chunks
 
-            // Step 1: Get the request digest
-            var digestUrl = string.Format("{0}/_api/contextinfo", 
-                videoDiscoveryInfo.VideoPortalUrl);
-            string formDigestValue = null;
-            using (HttpClient client = new HttpClient(new LoggingHandler(new HttpClientHandler())))
-            {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token.access_token);
-                using (HttpResponseMessage response = await client.PostAsync(digestUrl, null))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string json = await response.Content.ReadAsStringAsync();
-                        //Debug.WriteLine(json);
-                        formDigestValue = JObject.Parse(json)["FormDigestValue"].Value<string>();
-                    }
-                }
-            }
-
-            // Step 2: Create the placeholder
+            // Create the placeholder
             var channelVideosUrl = string.Format("{0}/_api/VideoService/Channels('{1}')/Videos", 
                 videoDiscoveryInfo.VideoPortalUrl, videoData.ChannelId);
 
@@ -237,7 +217,7 @@ namespace o365Sample.Controllers
             {
                 client.DefaultRequestHeaders.Add("Accept", "application/json;odata=verbose");
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token.access_token);
-                client.DefaultRequestHeaders.Add("X-RequestDigest", formDigestValue);
+                //client.DefaultRequestHeaders.Add("X-RequestDigest", formDigestValue);
                 using (var response = await client.PostAsync(channelVideosUrl, placeholderRequestBody))
                 {
                     if (response.IsSuccessStatusCode)
